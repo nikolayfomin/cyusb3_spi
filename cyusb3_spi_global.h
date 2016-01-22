@@ -1,0 +1,12 @@
+#ifndef CYUSB3_SPI_GLOBAL_H
+#define CYUSB3_SPI_GLOBAL_H
+
+#include <QtCore/qglobal.h>
+
+#if defined(CYUSB3_SPI_LIBRARY)
+#  define CYUSB3_SPISHARED_EXPORT Q_DECL_EXPORT
+#else
+#  define CYUSB3_SPISHARED_EXPORT Q_DECL_IMPORT
+#endif
+
+#endif // CYUSB3_SPI_GLOBAL_H
