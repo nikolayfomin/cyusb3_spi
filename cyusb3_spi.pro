@@ -11,6 +11,11 @@ TEMPLATE = lib
 
 DEFINES += CYUSB3_SPI_LIBRARY
 
+LIBS += ..\source\library\lib\x86\CyAPI.lib
+LIBS += /NODEFAULTLIB:LIBCMT
+LIBS += "C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Lib\User32.lib"
+LIBS += "C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Lib\setupapi.lib"
+
 SOURCES += cyusb3_spi.cpp
 
 HEADERS += cyusb3_spi.h\

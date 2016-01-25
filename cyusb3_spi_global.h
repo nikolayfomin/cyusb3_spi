@@ -3,10 +3,10 @@
 
 #include <QtCore/qglobal.h>
 
-#if defined(CYUSB3_SPI_LIBRARY)
-#  define CYUSB3_SPISHARED_EXPORT Q_DECL_EXPORT
-#else
-#  define CYUSB3_SPISHARED_EXPORT Q_DECL_IMPORT
-#endif
+extern "C" Q_DECL_EXPORT bool   cy3_OpenDevice(void);
+extern "C" Q_DECL_EXPORT void   cy3_CloseDevice(void);
+extern "C" Q_DECL_EXPORT bool   cy3_LoadRAM(const char* FileName);
+extern "C" Q_DECL_EXPORT int    cy3_WriteSPI(const unsigned char addr, const unsigned char data);
+extern "C" Q_DECL_EXPORT int    cy3_ReadSPI(const unsigned char addr, unsigned char* data);
 
 #endif // CYUSB3_SPI_GLOBAL_H
