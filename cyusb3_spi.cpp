@@ -3,19 +3,15 @@
 //////// EXPORT LAYER ////////
 bool cy3_OpenDevice(void)
 {
-    DTParams.USBDevice = new CCyFX3Device;
+    if (DTParams.USBDevice == NULL)
+        DTParams.USBDevice = new CCyFX3Device;
 
-    if ( ReviewDevices() )
+    if ( !ReviewDevices() )
         return false;
 
-    //if ( LoadRAM("..\\SlaveFifoSync.img") ) {
-    //if ( LoadRAM("..\\fx3_newsub_injector.img") ) {
-    //    return false;
-    //}
-
-    if (GetStreamerDevice())
+    if (!GetStreamerDevice())
     {
-        delete DTParams.USBDevice;
+        cy3_CloseDevice();
         return false;
     }
 
@@ -25,15 +21,16 @@ bool cy3_OpenDevice(void)
 
 void cy3_CloseDevice(void)
 {
-    delete DTParams.USBDevice;
+    if (NULL != DTParams.USBDevice)
+    {
+        delete DTParams.USBDevice;
+        DTParams.USBDevice = NULL;
+    }
 }
 
-bool cy3_LoadRAM(const char* FileName)
+int cy3_LoadRAM(const char* FileName)
 {
-    if (LoadRAM(FileName))
-        return false;
-
-    return true;
+    return LoadRAM(FileName);
 }
 
 int cy3_WriteSPI(const unsigned char addr, const unsigned char data)
@@ -51,7 +48,7 @@ int cy3_ReadSPI(const unsigned char addr, unsigned char* data)
 int ReviewDevices() {
     if (DTParams.USBDevice == NULL) {
         //qFatal( "Error: ReviewDevices::GetStreamerDevice() USBDevice == NULL" );
-        return -1;
+        return 0;
     }
     int dev_cnt = DTParams.USBDevice->DeviceCount();
     //qDebug( "ReviewDevices(): found %d devices", dev_cnt );
@@ -61,29 +58,21 @@ int ReviewDevices() {
     {
         unsigned short product = DTParams.USBDevice->ProductID;
         unsigned short vendor  = DTParams.USBDevice->VendorID;
-        bool suitable = ( vendor == VENDOR_ID ) && ( (product == PRODUCT_ID) || (product == PRODUCT_ID2) );
+        bool suitable = ( vendor == VENDOR_ID ) && ( (product == PRODUCT_ID_STREAM) || (product == PRODUCT_ID_BOOT) );
         //qDebug( "Device[%2d]: 0x%04X 0x%04X %s", i, vendor, product, suitable ? "***" : "" );
         if ( suitable ) {
             suitable_dev_cnt++;
         }
     }
     if (suitable_dev_cnt == 0) {
-        return -2;
-    } else {
         return 0;
+    } else {
+        return suitable_dev_cnt;
     }
 }
 
 int LoadRAM(const char* fwFileName)
 {
-    //qDebug() << "LoadRAM( '" << fwFileName << "' )";
-    /*QFile cf(fwFileName);
-    if (!cf.open(QFile::ReadOnly)) {
-        qFatal( "LoadRAM file '%s' io error!", fwFileName );
-        return -1;
-    } else {
-        cf.close();
-    }*/
 
     FILE *f = fopen(fwFileName, "rt");
 
@@ -98,27 +87,26 @@ int LoadRAM(const char* fwFileName)
         {
             int retCode  = DTParams.USBDevice->DownloadFw((char*)fwFileName, FX3_FWDWNLOAD_MEDIA_TYPE::RAM);
             if (FX3_FWDWNLOAD_ERROR_CODE::SUCCESS == retCode)
-            {
-                Sleep(1000);
-                return retCode;
-            }
-            else return -1;
+                return 1;
+            else
+                return -1;
         }
+        else
+            return 0;
     } else {
         //qDebug() << "LoadRAM(): USBDevice is NULL";
         return -2;
     }
-    return 0;
+    return -1;
 }
 
 int GetStreamerDevice(){
 
     //qDebug() << "CyThread::GetStreamerDevice()";
-    //StartParams.USBDevice = new CCyFX3Device;//(NULL, CYUSBDRV_GUID,true);
 
     if (DTParams.USBDevice == NULL) {
         //qDebug() << "Error: CyThread::GetStreamerDevice() USBDevice == NULL";
-        return -1;
+        return 0;
     }
 
     int n = DTParams.USBDevice->DeviceCount();
@@ -130,7 +118,7 @@ int GetStreamerDevice(){
                 i,
                 DTParams.USBDevice->VendorID,
                 DTParams.USBDevice->ProductID );*/
-        if ((DTParams.USBDevice->VendorID == VENDOR_ID) && (DTParams.USBDevice->ProductID == PRODUCT_ID)) {
+        if ((DTParams.USBDevice->VendorID == VENDOR_ID) && (DTParams.USBDevice->ProductID == PRODUCT_ID_STREAM)) {
             //qDebug( "Matched!" );
             break;
         }
@@ -138,7 +126,7 @@ int GetStreamerDevice(){
         DTParams.USBDevice->Open(i);
     }
 
-    if ((DTParams.USBDevice->VendorID == VENDOR_ID) && (DTParams.USBDevice->ProductID == PRODUCT_ID))
+    if ((DTParams.USBDevice->VendorID == VENDOR_ID) && (DTParams.USBDevice->ProductID == PRODUCT_ID_STREAM))
     {
         int interfaces = DTParams.USBDevice->AltIntfcCount()+1;
 
@@ -171,8 +159,10 @@ int GetStreamerDevice(){
             }
         }
     }
+    else
+        return 0;
 
-    return 0;
+    return 1;
 }
 
 int Read16bitSPI(unsigned char addr, unsigned char* data)

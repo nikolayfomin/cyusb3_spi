@@ -8,11 +8,9 @@
 #include <vector>
 
 #define MAX_QUEUE_SZ  64
-#define VENDOR_ID    ( 0x04B4 )
-#define PRODUCT_ID   ( 0x00F1 )
-#define PRODUCT_ID2  ( 0x00F3 )
-
-typedef void (__stdcall * DataProcessorFunc)(char*, int);//data pointer, data size (bytes);
+#define VENDOR_ID           ( 0x04B4 )
+#define PRODUCT_ID_STREAM   ( 0x00F1 )
+#define PRODUCT_ID_BOOT     ( 0x00F3 )
 
 struct EndPointParams{
     int Attr;
@@ -33,7 +31,6 @@ struct DataTransferParams{
     bool			bSuperSpeedDevice;
     bool			bStreaming;
     bool			ThreadAlreadyStopped;
-    DataProcessorFunc DataProc;
     EndPointParams  CurEndPoint;
 };
 
