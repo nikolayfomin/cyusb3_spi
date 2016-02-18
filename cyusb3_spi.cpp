@@ -1,13 +1,23 @@
 #include "cyusb3_spi.h"
 
 //////// EXPORT LAYER ////////
-bool cy3_OpenDevice(void)
+bool cy3_OpenDevice(const char* FileName)
 {
     if (DTParams.USBDevice == NULL)
         DTParams.USBDevice = new CCyFX3Device;
 
     if ( !ReviewDevices() )
         return false;
+
+    if (LoadRAM(FileName) == 1)
+    {
+        Sleep(2000);
+        delete DTParams.USBDevice;
+        DTParams.USBDevice = new CCyFX3Device;
+
+        if ( !ReviewDevices() )
+            return false;
+    }
 
     if (!GetStreamerDevice())
     {
@@ -28,11 +38,11 @@ void cy3_CloseDevice(void)
     }
 }
 
-int cy3_LoadRAM(const char* FileName)
+/*int cy3_LoadRAM(const char* FileName)
 {
     return LoadRAM(FileName);
 }
-
+*/
 int cy3_WriteSPI(const unsigned char addr, const unsigned char data)
 {
     return Send16bitSPI(addr,data);
